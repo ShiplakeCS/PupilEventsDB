@@ -68,7 +68,7 @@ class EventsDB:
 
     def __init__(self):
 
-        events_file = open("PupilEvents2016-12-13.csv", "r")
+        events_file = open("data/PupilEvents2016-12-13.csv", "r")
 
         events_file.readline()
 
