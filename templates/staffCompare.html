@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My First Flask App</title>
+</head>
+<body>
+    <h1>Welcome to the Pupil Events DB!</h1>
+    <h2>Details for {{s1}} vs {{s2}}:</h2>
+    <h3>{{s1}}</h3>
+    <table>
+        <!--
+        <thead><td>Event type</td> <td>{{s1}}</td><td>{{s2}}</td></thead>
+        <tr><td>Incompletes</td> <td>{{inc1}}</td><td>{{inc2}}</td></tr>
+        <tr><td>Infractions</td><td>{{inf1}}</td><td>{{inf2}}</td></tr>
+        <tr><td>Excellence Slips</td><td>{{exc1}}</td><td>{{exc2}}</td></tr>
+        -->
+        <thead><th>Event type</th> <th>Count</th></thead>
+        {% for key in t1 %}
+
+            <tr>
+               <td> {{ key }} </td>
+               <td> {{ t1[key] }} </td>
+            </tr>
+
+         {% endfor %}
+    </table>
+
+ <h3>{{s2}}</h3>
+    <table>
+        <thead><th>Event type</th> <th>Count</th></thead>
+        {% for key in t2 %}
+
+            <tr>
+               <td> {{ key }} </td>
+               <td> {{ t2[key] }} </td>
+            </tr>
+
+         {% endfor %}
+    </table>
+
+</body>
+</html>

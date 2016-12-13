@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My First Flask App</title>
+    <link type="text/css" rel="stylesheet" href="/static/style.css">
+        <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
+      google.charts.load('current', {'packages':['corechart']});
+
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(drawChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawChart() {
+
+        // Create the data table.
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Event Type');
+        data.addColumn('number', 'Number of events');
+        data.addRows([
+          ['Excellence Slips', {{events['Excellence slips']}}],
+          ['Infractions', {{events['Infractions']}}],
+          ['Incompletes', {{events['Incompletes']}}]
+        ]);
+
+        // Set chart options
+        var options = {'title':'Pupil Events logged by {{staffcode}}',
+                       'width':700,
+                       'height':500};
+
+        // Instantiate and draw our chart, passing in some options.
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+</head>
+<body>
+    <h1>Welcome to the Pupil Events DB!</h1>
+    <h2>Details for {{staffcode}}:</h2>
+    <table>
+        <thead><td>Event type</td><td>Number</td></thead>
+        <tr><td>Excellence Slips</td><td {% if events['Excellence slips'] > summary['avEXC']|float %} class='aboveAverage' {% endif %} >{{events['Excellence slips']}}</td></tr>
+        <tr><td>Incompletes</td><td {% if events['Incompletes'] > summary['avINC']|float %} class='aboveAverage' {% endif %}>{{events['Incompletes']}}</td></tr>
+        <tr><td>Infractions</td><td {% if events['Infractions'] > summary['avINF']|float %} class='aboveAverage' {% endif %}>{{events['Infractions']}}</td></tr>
+        <tr></tr>
+        <tr><td>Excellence Slip to Infractions ratio</td><td {% if events['Ratio']|float < summary['ratio']|float %} class='belowAverage' {% endif %}>{{events['Ratio']}}</td></tr>
+    </table>
+    <div id="chart_div"></div>
+
+    <h2>How does this compare to others?</h2>
+    <table>
+        <thead><td>Event type</td><td>Mean across College</td></thead>
+        <tr><td>Excellence Slips</td><td>{{summary['avEXC']}}</td></tr>
+        <tr><td>Incompletes</td><td> {{summary['avINC']}} </td></tr>
+        <tr><td>Infractions</td><td>{{summary['avINF']}}</td></tr>
+        <tr></tr>
+        <tr><td>Excellence Slip to Infractions ratio</td><td>{{summary['ratio']}}</td></tr>
+
+    </table>
+
+</body>
+</html>
