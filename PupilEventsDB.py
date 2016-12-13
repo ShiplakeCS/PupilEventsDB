@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+updated = "13/12/2016"
 
 class Teacher:
 
@@ -67,7 +68,7 @@ class EventsDB:
 
     def __init__(self):
 
-        events_file = open("PupilEvents-2016-12-09.csv", "r")
+        events_file = open("PupilEvents2016-12-13.csv", "r")
 
         events_file.readline()
 
@@ -124,9 +125,10 @@ program = EventsDB()
 
 @app.route('/<staffcode>/')
 def showStaffDetails(staffcode):
+    global updated
     try:
         teacher = program.get_teacher(staffcode.upper())
-        return render_template("staffDetails.html", staffcode = staffcode, events = teacher.get_events(), summary = program.get_summary())
+        return render_template("staffDetails.html", staffcode = staffcode, events = teacher.get_events(), summary = program.get_summary(), updated = updated)
     except KeyError:
         return "No teacher found with code " +  staffcode
 
