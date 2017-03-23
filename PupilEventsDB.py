@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-updated = "13/12/2016"
+updated = "23/03/2017"
 
 class Teacher:
 
@@ -18,10 +18,10 @@ class Teacher:
         if "EXC" in event:
             self.__numEXC += 1
 
-        elif "Infraction" in event:
+        elif "INF" in event:
             self.__numINF += 1
 
-        elif "Incomplete" in event:
+        elif "INC" in event:
             self.__numINC += 1
 
         self.refresh_ratio()
@@ -65,10 +65,14 @@ class EventsDB:
     __totalExc = 0
     __totalInc = 0
     __totalRatio = 0
+    __maxInf = 0
+    __maxExc = 0
+    __maxInfStaff = None
+    __maxExcStaff = None
 
     def __init__(self):
 
-        events_file = open("data/PupilEvents2016-12-13.csv", "r")
+        events_file = open("data/PupilEvents-2017-03-23.csv", "r")
 
         events_file.readline()
 
@@ -76,12 +80,12 @@ class EventsDB:
             line = line.rstrip("\n")
             cols = line.split(",")
 
-            if cols[1] in self.__staff.keys():
+            if cols[2] in self.__staff.keys():
                 pass
             else:
-                self.__staff[cols[1]] = Teacher()
+                self.__staff[cols[2]] = Teacher()
 
-            self.__staff[cols[1]].add_event(cols[0])
+            self.__staff[cols[2]].add_event(cols[0])
 
         self.refresh_summary()
 
@@ -105,11 +109,24 @@ class EventsDB:
 
         self.refresh_ratio()
 
+        for s in self.__staff.keys():
+            events = self.__staff[s].get_events()
+            if events['Infractions'] > self.__maxInf:
+                self.__maxInf = events['Infractions']
+                self.__maxInfStaff = s
+            if events['Excellence slips'] > self.__maxExc:
+                self.__maxExc = events['Excellence slips']
+                self.__maxExcStaff = s
+
 
     def get_summary(self):
         return {"avEXC":"%0.2f" % (float(self.__totalExc) / len(self.__staff)),
                 "avINF":"%0.2f" % (float(self.__totalInf) / len(self.__staff)),
                 "avINC":"%0.2f" % (float(self.__totalInc) / len(self.__staff)),
+                "maxINF":str(self.__maxInf),
+                "maxINFStaff":self.__maxInfStaff,
+                "maxEXC":str(self.__maxExc),
+                "maxEXCStaff":self.__maxExcStaff,
                 "ratio":self.__totalRatio,
                 "n":len(self.__staff)}
 
@@ -120,8 +137,25 @@ class EventsDB:
     def get_teacher(self, staffcode):
         return self.__staff[staffcode]
 
+    def get_all_staff_stats(self):
+
+        stats = []
+
+        for s in sorted(self.__staff.keys()):
+            t = self.get_teacher(s)
+            stats.append({'code': s, 'inf': t.get_num_inf(), 'exc': t.get_num_exc()})
+
+        return stats
 
 program = EventsDB()
+
+@app.route('/')
+def showSummaryStats():
+    return render_template("index.html", summary = program.get_summary(), updated = updated)
+
+@app.route('/allstaff/')
+def showAllStaffStats():
+    return render_template("allstaff.html", stats = program.get_all_staff_stats())
 
 @app.route('/<staffcode>/')
 def showStaffDetails(staffcode):

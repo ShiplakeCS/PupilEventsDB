@@ -24,9 +24,9 @@
         data.addColumn('string', 'Event Type');
         data.addColumn('number', 'Number of events');
         data.addRows([
-          ['Excellence Slips', {{events['Excellence slips']}}],
-          ['Infractions', {{events['Infractions']}}],
-          ['Incompletes', {{events['Incompletes']}}]
+          ['Excellence Slips', {{summary['avEXC']}}],
+          ['Infractions', {{summary['avINF']}}],
+          ['Incompletes', {{summary['avINC']}}]
         ]);
 
         // Set chart options
@@ -43,20 +43,18 @@
 <body>
     <h1>Welcome to the Pupil Events DB!</h1>
     <p>Source data last updated: {{updated}}</p>
-    <h2>Details for {{staffcode}}:</h2>
+    <h2>Summary of data</h2>
+    <h3>Maximum values for Excellence Slips and Infractions</h3>
     <table>
-        <thead><td>Event type</td><td>Number</td></thead>
-        <tr><td>Excellence Slips</td><td {% if events['Excellence slips'] > summary['avEXC']|float %} class='aboveAverage' {% endif %} >{{events['Excellence slips']}}</td></tr>
-        <tr><td>Incompletes</td><td {% if events['Incompletes'] > summary['avINC']|float %} class='aboveAverage' {% endif %}>{{events['Incompletes']}}</td></tr>
-        <tr><td>Infractions</td><td {% if events['Infractions'] > summary['avINF']|float %} class='aboveAverage' {% endif %}>{{events['Infractions']}}</td></tr>
-        <tr></tr>
-        <tr><td>Excellence Slip to Infractions ratio</td><td {% if events['Ratio']|float < summary['ratio']|float %} class='belowAverage' {% endif %}>{{events['Ratio']}}</td></tr>
+        <thead><td>Event type</td><td>Highest number</td><td>Staff member</td></thead>
+        <tr><td>Excellence Slips</td><td>{{summary['maxEXC']}}</td><td>{{summary['maxEXCStaff']}}</td></tr>
+        <tr><td>Infractions</td><td>{{summary['maxINF']}}</td><td>{{summary['maxINFStaff']}}</td></tr>
     </table>
-    <div id="chart_div"></div>
 
-    <h2>How does this compare to others?</h2>
+
+    <h2>How does this compare to the rest of the College?</h2>
     <table>
-        <thead><td>Event type</td><td>Mean across College</td></thead>
+        <thead><td>Event type</td><td>Mean (per person) across College</td></thead>
         <tr><td>Excellence Slips</td><td>{{summary['avEXC']}}</td></tr>
         <tr><td>Incompletes</td><td> {{summary['avINC']}} </td></tr>
         <tr><td>Infractions</td><td>{{summary['avINF']}}</td></tr>
@@ -64,6 +62,6 @@
         <tr><td>Excellence Slip to Infractions ratio</td><td>{{summary['ratio']}}</td></tr>
 
     </table>
-
+    <div id="chart_div"></div>
 </body>
 </html>

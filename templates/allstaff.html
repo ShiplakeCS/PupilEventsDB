@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pupil Events DB: All Staff Data</title>
+</head>
+<body>
+    <h1>Welcome to the Pupil Events DB!</h1>
+    <h2>Details for all staff:</h2>
+    <table>
+        <thead><th>Staff Code</th> <th>Excellence Slips</th><th>Infractions</th></thead>
+        {% for staff in stats %}
+
+            <tr>
+               <td> {{ staff['code'] }} </td>
+               <td> {{ staff['exc'] }} </td>
+                <td> {{ staff['inf'] }} </td>
+            </tr>
+
+         {% endfor %}
+    </table>
+
+
+</body>
+</html>
