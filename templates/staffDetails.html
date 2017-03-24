@@ -50,7 +50,7 @@
         <tr><td>Incompletes</td><td {% if events['Incompletes'] > summary['avINC']|float %} class='aboveAverage' {% endif %}>{{events['Incompletes']}}</td></tr>
         <tr><td>Infractions</td><td {% if events['Infractions'] > summary['avINF']|float %} class='aboveAverage' {% endif %}>{{events['Infractions']}}</td></tr>
         <tr></tr>
-        <tr><td>Excellence Slip to Infractions ratio</td><td {% if events['Ratio']|float < summary['ratio']|float %} class='belowAverage' {% endif %}>{{events['Ratio']}}</td></tr>
+        <tr><td>Excellence Slip to Infractions ratio</td><td {% if events['Ratio']|float < summary['ratio']|float %} class='belowAverage' {% elif events['Ratio']|float > summary['ratio']|float %} class='aboveAverage' {% endif %}>{{events['Ratio']}}</td></tr>
     </table>
     <div id="chart_div"></div>
 
