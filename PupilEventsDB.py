@@ -2,7 +2,9 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-updated = "23/03/2017"
+updated = "24/03/2017"
+source_file = "data/PupilEvents-2017-03-24.csv"
+# empty comment
 
 class Teacher:
 
@@ -73,7 +75,7 @@ class EventsDB:
 
     def __init__(self):
 
-        events_file = open("data/PupilEvents-2017-03-23.csv", "r")
+        events_file = open(source_file, "r")
 
         events_file.readline()
 
