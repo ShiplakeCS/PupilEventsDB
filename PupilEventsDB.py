@@ -7,6 +7,7 @@ app = Flask(__name__)
 source_file = "data/data.xls"
 updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
 
+
 class Teacher:
 
     # __events = []
@@ -58,7 +59,6 @@ class Teacher:
                  'Infractions':self.__numINF,
                  'Incompletes':self.__numINC,
                  'Ratio':self.__ratio}
-
 
 
 class EventsDB:
@@ -154,15 +154,11 @@ class EventsDB:
             # Add the event to the relevant Teacher in the __staff dictionary
             self.__staff[staff_code].add_event(category_code)
 
-
-
-
     def refresh_ratio(self):
         try:
             self.__totalRatio = "%0.2f" % (self.__totalExc / self.__totalInf)
         except ZeroDivisionError:
             self.__totalRatio = "No Infractions"
-
 
     def refresh_summary(self):
 
@@ -205,14 +201,13 @@ class EventsDB:
 
     def get_teacher(self, staffcode):
         return self.__staff[staffcode]
-	
+
     def generate_all_staff_stats(self):
         print("Generating all staff stats...")
 
         for s in sorted(self.__staff.keys()):
             t = self.get_teacher(s)
             self.__allstaffstats.append({'code': s, 'inf': t.get_num_inf(), 'exc': t.get_num_exc()})
-		
 
     def get_all_staff_stats(self):
         print("All staff stats requested")
@@ -220,13 +215,16 @@ class EventsDB:
 
 program = EventsDB()
 
+
 @app.route('/')
 def showSummaryStats():
     return render_template("index.html", summary = program.get_summary(), updated = updated)
 
+
 @app.route('/allstaff/')
 def showAllStaffStats():
     return render_template("allstaff.html", stats = program.get_all_staff_stats(), updated = updated)
+
 
 @app.route('/<staffcode>/')
 def showStaffDetails(staffcode):
@@ -236,6 +234,7 @@ def showStaffDetails(staffcode):
         return render_template("staffDetails.html", staffcode = staffcode, events = teacher.get_events(), summary = program.get_summary(), updated = updated)
     except KeyError:
         return "No teacher found with code " +  staffcode
+
 
 @app.route('/<staff1>/<staff2>')
 def compareStaff(staff1, staff2):
