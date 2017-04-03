@@ -226,7 +226,7 @@ def showSummaryStats():
 
 @app.route('/allstaff/')
 def showAllStaffStats():
-    return render_template("allstaff.html", stats = program.get_all_staff_stats())
+    return render_template("allstaff.html", stats = program.get_all_staff_stats(), updated = updated)
 
 @app.route('/<staffcode>/')
 def showStaffDetails(staffcode):
