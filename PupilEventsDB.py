@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request
 
+import openpyxl
+
 app = Flask(__name__)
 
 updated = "01/04/2017"
 source_file = "data/data.csv"
+source_xls = "data/data.xlsx"
 
 class Teacher:
 
@@ -74,6 +77,23 @@ class EventsDB:
 
     def __init__(self):
 
+        events_data = openpyxl.load_workbook(source_xls, read_only=True).get_sheet_by_name("Sheet1")
+
+        for row in range(2, events_data.max_row + 1):
+            # Read key info from the present row in the worksheet
+            category_code = events_data['A' + str(row)].value
+            staff_code = events_data['C' + str(row)].value
+            print(category_code, staff_code)
+            # Test whether an entry needs adding to the __staff dictionary for the present staff code
+            if staff_code in self.__staff.keys():
+                pass
+            else:
+                self.__staff[staff_code] = Teacher()
+
+            # Add the event to the relevant Teacher in the __staff dictionary
+            self.__staff[staff_code].add_event(category_code)
+
+        """
         events_file = open(source_file, "r")
 
         events_file.readline()
@@ -88,7 +108,7 @@ class EventsDB:
                 self.__staff[cols[2]] = Teacher()
 
             self.__staff[cols[2]].add_event(cols[0])
-
+        """
         self.refresh_summary()
 
     def refresh_ratio(self):
