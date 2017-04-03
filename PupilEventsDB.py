@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request
 
-import openpyxl
+import openpyxl, xlrd, os, datetime
 
 app = Flask(__name__)
 
-updated = "01/04/2017"
-source_file = "data/data.csv"
-source_xls = "data/data.xlsx"
+source_file = "data/data.xls"
+updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
 
 class Teacher:
 
@@ -77,24 +76,29 @@ class EventsDB:
 
     def __init__(self):
 
-        events_data = openpyxl.load_workbook(source_xls, read_only=True).get_sheet_by_name("Sheet1")
+        if source_file[-4:].lower() == ".csv":
+            print("CSV file detected")
+            self.load_CSV_data()
 
-        for row in range(2, events_data.max_row + 1):
-            # Read key info from the present row in the worksheet
-            category_code = events_data['A' + str(row)].value
-            staff_code = events_data['C' + str(row)].value
-            print(category_code, staff_code)
-            # Test whether an entry needs adding to the __staff dictionary for the present staff code
-            if staff_code in self.__staff.keys():
-                pass
-            else:
-                self.__staff[staff_code] = Teacher()
+        elif source_file[-5:].lower() == ".xlsx":
+            print("XLSX file detected")
+            self.load_XLSX_data()
 
-            # Add the event to the relevant Teacher in the __staff dictionary
-            self.__staff[staff_code].add_event(category_code)
+        elif source_file[-4:].lower() == ".xls":
+            print("XLS file detected")
+            self.load_XLS_data()
 
-        """
+        else:
+            print("No compatible source data file format found!")
+            raise Exception
+
+        self.refresh_summary()
+
+    def load_CSV_data(self):
+
         events_file = open(source_file, "r")
+
+        print("Processing CSV data found in {0}...".format(source_file))
 
         events_file.readline()
 
@@ -108,8 +112,50 @@ class EventsDB:
                 self.__staff[cols[2]] = Teacher()
 
             self.__staff[cols[2]].add_event(cols[0])
-        """
-        self.refresh_summary()
+
+    def load_XLSX_data(self):
+
+        events_data = openpyxl.load_workbook(source_file, read_only=True).get_sheet_by_name("Sheet1")
+        print("Processing XLSX data found in {0}...".format(source_file))
+
+        for row in range(2, events_data.max_row + 1):
+            # Read key info from the present row in the worksheet
+            category_code = events_data['A' + str(row)].value
+            staff_code = events_data['C' + str(row)].value
+
+            # Update output so that users know what's going on
+            print(row, ":", category_code,"-", staff_code)
+
+            # Test whether an entry needs adding to the __staff dictionary for the present staff code
+            if staff_code in self.__staff.keys():
+                pass
+            else:
+                self.__staff[staff_code] = Teacher()
+
+            # Add the event to the relevant Teacher in the __staff dictionary
+            self.__staff[staff_code].add_event(category_code)
+
+    def load_XLS_data(self):
+
+        events_data = xlrd.open_workbook(source_file, on_demand=True).sheet_by_name("Sheet1")
+
+        for row in range(events_data.nrows):
+
+            # Read key info from the present row in the worksheet
+            category_code = events_data.cell(row, 0).value
+            staff_code = events_data.cell(row, 2).value
+
+            # Test whether an entry needs adding to the __staff dictionary for the present staff code
+            if staff_code in self.__staff.keys():
+                pass
+            else:
+                self.__staff[staff_code] = Teacher()
+
+            # Add the event to the relevant Teacher in the __staff dictionary
+            self.__staff[staff_code].add_event(category_code)
+
+
+
 
     def refresh_ratio(self):
         try:
@@ -139,6 +185,7 @@ class EventsDB:
             if events['Excellence slips'] > self.__maxExc:
                 self.__maxExc = events['Excellence slips']
                 self.__maxExcStaff = s
+
         self.generate_all_staff_stats()
 
     def get_summary(self):
