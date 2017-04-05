@@ -77,19 +77,31 @@ class EventsDB:
     def __init__(self):
 
         if source_file[-4:].lower() == ".csv":
-            print("CSV file detected")
+            try:
+                print("CSV file detected")
+            except:
+                pass
             self.load_CSV_data()
 
         elif source_file[-5:].lower() == ".xlsx":
-            print("XLSX file detected")
+            try:
+                print("XLSX file detected")
+            except:
+                pass            
             self.load_XLSX_data()
 
         elif source_file[-4:].lower() == ".xls":
-            print("XLS file detected")
+            try:
+                print("XLS file detected")
+            except:
+                pass            
             self.load_XLS_data()
 
         else:
-            print("No compatible source data file format found!")
+            try:
+                print("No compatible source data file format found!")
+            except:
+                pass            
             raise Exception
 
         self.refresh_summary()
@@ -98,8 +110,10 @@ class EventsDB:
 
         events_file = open(source_file, "r")
 
-        print("Processing CSV data found in {0}...".format(source_file))
-
+        try:
+            print("Processing CSV data found in {0}...".format(source_file))
+        except:
+            pass
         events_file.readline()
 
         for line in events_file:
@@ -116,7 +130,10 @@ class EventsDB:
     def load_XLSX_data(self):
 
         events_data = openpyxl.load_workbook(source_file, read_only=True).get_sheet_by_name("Sheet1")
-        print("Processing XLSX data found in {0}...".format(source_file))
+        try:
+            print("Processing XLSX data found in {0}...".format(source_file))
+        except:
+            pass
 
         for row in range(2, events_data.max_row + 1):
             # Read key info from the present row in the worksheet
@@ -124,7 +141,10 @@ class EventsDB:
             staff_code = events_data['C' + str(row)].value
 
             # Update output so that users know what's going on
-            print(row, ":", category_code,"-", staff_code)
+            try:
+                print(row, ":", category_code,"-", staff_code)
+            except:
+                pass
 
             # Test whether an entry needs adding to the __staff dictionary for the present staff code
             if staff_code in self.__staff.keys():
@@ -203,14 +223,21 @@ class EventsDB:
         return self.__staff[staffcode]
 
     def generate_all_staff_stats(self):
-        print("Generating all staff stats...")
+        try:
+            print("Generating all staff stats...")
+        except:
+            pass
 
         for s in sorted(self.__staff.keys()):
             t = self.get_teacher(s)
             self.__allstaffstats.append({'code': s, 'inf': t.get_num_inf(), 'exc': t.get_num_exc()})
 
     def get_all_staff_stats(self):
-        print("All staff stats requested")
+        try:
+            print("All staff stats requested")
+        except:
+            pass
+
         return self.__allstaffstats
 
 program = EventsDB()
