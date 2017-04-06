@@ -1,11 +1,15 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 
 import openpyxl, xlrd, os, datetime
 
 app = Flask(__name__)
 
-source_file = "data/data.xls"
-updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
+data_source = "data/data.xls"
+updated = datetime.datetime.fromtimestamp(os.path.getmtime(data_source))
+
+
+class FileTypeError(Exception):
+    pass
 
 
 class Teacher:
@@ -76,37 +80,61 @@ class EventsDB:
 
     def __init__(self):
 
+        self.load_data(data_source)
+
+    def clear_data(self):
+        self.__staff = {}
+        self.__allstaffstats = []
+        self.__totalExc = 0
+        self.__totalInc = 0
+        self.__totalInf = 0
+        self.__totalRatio = 0
+        self.__maxExc = 0
+        self.__maxInf = 0
+        self.__maxExcStaff = None
+        self.__maxInfStaff = None
+
+    def load_data(self, source_file):
+
+        self.clear_data()
+
+        try:
+            print("Loading source data...")
+        except:
+            pass
+
         if source_file[-4:].lower() == ".csv":
             try:
                 print("CSV file detected")
             except:
                 pass
-            self.load_CSV_data()
+            self.load_CSV_data(source_file)
 
         elif source_file[-5:].lower() == ".xlsx":
             try:
                 print("XLSX file detected")
             except:
-                pass            
-            self.load_XLSX_data()
+                pass
+            self.load_XLSX_data(source_file)
 
         elif source_file[-4:].lower() == ".xls":
             try:
                 print("XLS file detected")
             except:
-                pass            
-            self.load_XLS_data()
+                pass
+            self.load_XLS_data(source_file)
 
         else:
             try:
                 print("No compatible source data file format found!")
             except:
-                pass            
+                pass
             raise Exception
 
         self.refresh_summary()
 
-    def load_CSV_data(self):
+
+    def load_CSV_data(self, source_file):
 
         events_file = open(source_file, "r")
 
@@ -114,6 +142,7 @@ class EventsDB:
             print("Processing CSV data found in {0}...".format(source_file))
         except:
             pass
+
         events_file.readline()
 
         for line in events_file:
@@ -127,7 +156,7 @@ class EventsDB:
 
             self.__staff[cols[2]].add_event(cols[0])
 
-    def load_XLSX_data(self):
+    def load_XLSX_data(self, source_file):
 
         events_data = openpyxl.load_workbook(source_file, read_only=True).get_sheet_by_name("Sheet1")
         try:
@@ -155,7 +184,7 @@ class EventsDB:
             # Add the event to the relevant Teacher in the __staff dictionary
             self.__staff[staff_code].add_event(category_code)
 
-    def load_XLS_data(self):
+    def load_XLS_data(self, source_file):
 
         events_data = xlrd.open_workbook(source_file, on_demand=True).sheet_by_name("Sheet1")
 
@@ -270,5 +299,30 @@ def compareStaff(staff1, staff2):
     # TODO: Improve the following by passing dictionaries for each member of staff, rather than 4 variables for each (i.e. 2 dictionries) - you will need to twaeak the HTML template to iterate over dictionary items in Flask's syntax
     return render_template("staffCompare.html", s1 = staff1, s2 = staff2, t1 = t1events, t2 = t2events)
 
+
+@app.route('/update-data')
+def upload_file():
+    return render_template('update-data.html')
+
+
+@app.route('/uploader', methods=['GET', 'POST'])
+def update_data():
+    if request.method == 'POST':
+        f = request.files['file']
+        if f.filename[-4:] == ".csv":
+            filepath = "data/data.csv"
+
+        elif f.filename[-4:] == ".xls":
+            filepath = "data/data.xls"
+
+        elif f.filename[-5:] == ".xlsx":
+            filepath = "data/data.xlsx"
+        else:
+            raise FileTypeError("Filetype not recognised. Must use CSV, XLS or XLSX.")
+
+        f.save(filepath)
+        program.load_data(filepath)
+
+        return redirect('/')
 
 app.run(debug=True, host='0.0.0.0', port=2000)
