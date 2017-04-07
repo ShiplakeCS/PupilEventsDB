@@ -133,8 +133,9 @@ class EventsDB:
 
         self.refresh_summary()
 
-
     def load_CSV_data(self, source_file):
+
+        global updated
 
         events_file = open(source_file, "r")
 
@@ -156,7 +157,11 @@ class EventsDB:
 
             self.__staff[cols[2]].add_event(cols[0])
 
+        updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
+
     def load_XLSX_data(self, source_file):
+
+        global updated
 
         events_data = openpyxl.load_workbook(source_file, read_only=True).get_sheet_by_name("Sheet1")
         try:
@@ -184,7 +189,11 @@ class EventsDB:
             # Add the event to the relevant Teacher in the __staff dictionary
             self.__staff[staff_code].add_event(category_code)
 
+        updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
+
     def load_XLS_data(self, source_file):
+
+        global updated
 
         events_data = xlrd.open_workbook(source_file, on_demand=True).sheet_by_name("Sheet1")
 
@@ -202,6 +211,8 @@ class EventsDB:
 
             # Add the event to the relevant Teacher in the __staff dictionary
             self.__staff[staff_code].add_event(category_code)
+
+        updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
 
     def refresh_ratio(self):
         try:
