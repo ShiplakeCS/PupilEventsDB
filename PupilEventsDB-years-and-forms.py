@@ -12,14 +12,97 @@ class FileTypeError(Exception):
     pass
 
 
+# TODO: Add Form class, must be able to report numbers of inf and exc
+# TODO: Add Year class that contains form objects
+# TODO: Add House class that contains form objects
+
+class FormGroup:
+
+    def __init__(self):
+        self.__inf = 0
+        self.__exc = 0
+
+    def addEvent(self, event):
+        if "EXC" in event:
+            self.__exc += 1
+        elif "INF" in event or "INC" in event:
+            self.__inf += 1
+
+    def getExc(self):
+        return self.__exc
+
+    def getInf(self):
+        return self.__inf
+
+    def getEventsCount(self):
+        """Returns a tuple of exc, inf"""
+        return self.__exc, self.__inf
+
+class YearGroup:
+
+
+    def __init__(self, yg):
+        self.__yearGroup = yg
+        self.__inf = 0
+        self.__exc = 0
+        self.__forms = {}
+
+
+    def getForms(self):
+        return self.__forms.keys()
+
+    def addEvent(self, event, form_code):
+        if form_code[:2] != self.__yearGroup:
+            print("Not for this year")
+            return
+
+
+        if form_code not in self.__forms:
+            print("No form found in this year")
+        else:
+            self.__forms[form_code].addEvent(event)
+            #print("added event to form", form_code, "in yeargroup", self.__yearGroup)
+
+
+    def addForm(self, f):
+        if f[:2] != self.__yearGroup:
+            print("Form {0} does not belong to year {1}!".format(f, self.year))
+        else:
+            self.__forms[f] = FormGroup()
+            print("Form {0} created in Yeargroup {1}".format(f, self.__yearGroup))
+
+    def printDetails(self):
+
+        print("Yeargroup", self.__yearGroup)
+
+        for f in self.__forms:
+            print("Form {0}, inf: {1}, exc: {2}".format(f, self.__forms[f].getInf(), self.__forms[f].getExc()))
+
+        print("Yeargroup {0} - Inf: {1}, Exc: {2}".format(self.__yearGroup, self.__inf, self.__exc))
+
+
+
+    def refreshValues(self):
+
+        self.__inf = 0
+        self.__exc = 0
+
+        for f in self.__forms:
+            self.__exc = self.__exc +  self.__forms[f].getExc()
+            self.__inf = self.__inf + self.__forms[f].getInf()
+
+        print("Refreshed values for yeargroup {0} / inf: {1}, exc: {2}".format(self.__yearGroup, self.__inf, self.__exc))
+
+
+
 class Teacher:
 
-    # __events = []
-    __numINF = 0
-    __numEXC = 0
-    __numINC = 0
-    __ratio = 0
-    __subject = None
+    def __init__(self):
+        self.__numINF = 0
+        self.__numEXC = 0
+        self.__numINC = 0
+        self.__ratio = 0
+        self.__subject = None
 
     def add_event(self, event):
 
@@ -64,99 +147,31 @@ class Teacher:
                  'Incompletes':self.__numINC,
                  'Ratio':self.__ratio}
 
-class YearGroup:
-	__id = ""
-	__forms = {}
-	__totalExc = 0
-	__totalInf = 0
-	__totalRatio = 0
-	
-	def __init__(self, y):
-		self.__id = y # yeargroup, e.g. 7, 8, 9, etc
-		
-	def add_form(self, form_code):
-		if form_code in self.__forms:
-			return self.__forms[form_code]
-		else:
-			self.__forms[form_code] = Form(form_code)
-			return self.__forms[form_code]
-			
-	def get_form(self, form_code):
-		return self.__forms[form_code]
-	
-	def get_forms(self, ):
-		return self.__forms
-	
-	def add_form_event(self, form_code, event):
-		add_form(form_code).add_event(event)
-	
-	def update_event_data(self, event):
-		if "EXC" in event:
-			self.__totalExc += 1
-		elif "INF" in event:
-			self.__totalInf += 1
-		elif "INC" in event:
-			self.__totalInf += 1
-
-        try:
-            self.__totalRatio = "%0.2f" % (self.__totalExc / self.__totalInf)
-
-        except ZeroDivisionError:
-            self.__totalRatio = "No Infractions"
-		
-class Form:
-	__id = ""
-	__exc = 0
-	__inf = 0
-	__ratio = "0.0"
-	
-	def __init__(self, code):
-		self.__id = code
-		
-	def add_event(self, event):
-
-        if "EXC" in event:
-            self.__exc += 1
-
-        elif "INF" in event:
-            self.__inf += 1
-
-        elif "INC" in event:
-            self.__inf += 1
-		
-		self.refresh_ratio(self)
-		
-	def refresh_ratio(self):
-        try:
-            self.__ratio = "%0.2f" % (self.__exc / self.__inf)
-        except ZeroDivisionError:
-            self.__ratio = "No Infractions"
-	
-	def get_events(self):
-		"""Returns a dictionary of events (keys: exc, inf)"""
-		return {'exc':self.__exc, 'inf':self.__inf}
-	
 
 class EventsDB:
 
-    __staff = {}
-    __allstaffstats = []
-    __totalInf = 0
-    __totalExc = 0
-    __totalInc = 0
-    __totalRatio = 0
-    __maxInf = 0
-    __maxExc = 0
-    __maxInfStaff = None
-    __maxExcStaff = None
-    # Need to add year group dictionary
+    ## Changes for yeargroup and form group calculations
+
+
 
     def __init__(self):
 
-        self.load_data(data_source)
+        self.__staff = {}
+        self.__yearGroups = {}
+        self.__allstaffstats = []
+        self.__totalExc = 0
+        self.__totalInc = 0
+        self.__totalInf = 0
+        self.__totalRatio = 0
+        self.__maxExc = 0
+        self.__maxInf = 0
+        self.__maxExcStaff = None
+        self.__maxInfStaff = None
+
 
     def clear_data(self):
         self.__staff = {}
+        self.__yearGroups = {}
         self.__allstaffstats = []
         self.__totalExc = 0
         self.__totalInc = 0
@@ -176,25 +191,8 @@ class EventsDB:
         except:
             pass
 
-        if source_file[-4:].lower() == ".csv":
-            try:
-                print("CSV file detected")
-            except:
-                pass
-            self.load_CSV_data(source_file)
+        if source_file[-4:].lower() == ".xls":
 
-        elif source_file[-5:].lower() == ".xlsx":
-            try:
-                print("XLSX file detected")
-            except:
-                pass
-            self.load_XLSX_data(source_file)
-
-        elif source_file[-4:].lower() == ".xls":
-            try:
-                print("XLS file detected")
-            except:
-                pass
             self.load_XLS_data(source_file)
 
         else:
@@ -204,81 +202,20 @@ class EventsDB:
                 pass
             raise Exception
 
-        self.refresh_summary()
-
-    def load_CSV_data(self, source_file):
-
-        global updated
-
-        events_file = open(source_file, "r")
-
-        try:
-            print("Processing CSV data found in {0}...".format(source_file))
-        except:
-            pass
-
-        events_file.readline()
-
-        for line in events_file:
-            line = line.rstrip("\n")
-            cols = line.split(",")
-
-            if cols[2] in self.__staff.keys():
-                pass
-            else:
-                self.__staff[cols[2]] = Teacher()
-
-            self.__staff[cols[2]].add_event(cols[0])
-
-			form_code = cols[4]
-
-        updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
-
-    def load_XLSX_data(self, source_file):
-
-        global updated
-
-        events_data = openpyxl.load_workbook(source_file, read_only=True).get_sheet_by_name("Sheet1")
-        try:
-            print("Processing XLSX data found in {0}...".format(source_file))
-        except:
-            pass
-
-        for row in range(2, events_data.max_row + 1):
-            # Read key info from the present row in the worksheet
-            category_code = events_data['A' + str(row)].value
-            staff_code = events_data['C' + str(row)].value
-			form_code = events_data['E' + str(row)].value
-			
-            # Update output so that users know what's going on
-            try:
-                print(row, ":", category_code,"-", staff_code)
-            except:
-                pass
-
-            # Test whether an entry needs adding to the __staff dictionary for the present staff code
-            if staff_code in self.__staff.keys():
-                pass
-            else:
-                self.__staff[staff_code] = Teacher()
-
-            # Add the event to the relevant Teacher in the __staff dictionary
-            self.__staff[staff_code].add_event(category_code)
-
-        updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
-
     def load_XLS_data(self, source_file):
 
         global updated
 
         events_data = xlrd.open_workbook(source_file, on_demand=True).sheet_by_name("Sheet1")
 
-        for row in range(events_data.nrows):
+        for row in range(1, events_data.nrows):
 
             # Read key info from the present row in the worksheet
             category_code = events_data.cell(row, 0).value
             staff_code = events_data.cell(row, 2).value
             form_code = events_data.cell(row, 4).value
+            year_code = form_code[:2]
+            house_code = form_code[-1:]
 
             # Test whether an entry needs adding to the __staff dictionary for the present staff code
             if staff_code in self.__staff.keys():
@@ -288,6 +225,26 @@ class EventsDB:
 
             # Add the event to the relevant Teacher in the __staff dictionary
             self.__staff[staff_code].add_event(category_code)
+
+            # Test if a relevant year group exists and, if not, create it
+
+            if year_code not in self.__yearGroups.keys():
+                self.__yearGroups[year_code] = YearGroup(year_code)
+                #print("Year group created for {0}".format(year_code))
+
+            # Test if the relevant year group contains the form
+            if form_code not in self.__yearGroups[year_code].getForms() and form_code[:2] == year_code:
+                self.__yearGroups[year_code].addForm(form_code)
+                #print("Form group created for {0} in year {1}".format(form_code, year_code))
+
+            # Add event to current yeargroup and form
+
+            self.__yearGroups[year_code].addEvent(category_code, form_code)
+            #print("Added {2} event to form {0} in year {1}".format(form_code, year_code, category_code))
+
+        for yg in self.__yearGroups:
+            self.__yearGroups[yg].refreshValues()
+            #self.__yearGroups[yg].printDetails()
 
         updated = datetime.datetime.fromtimestamp(os.path.getmtime(source_file))
 
@@ -357,9 +314,10 @@ class EventsDB:
 
         return self.__allstaffstats
 
-program = EventsDB()
 
+#program.load_data(data_source)
 
+"""
 @app.route('/')
 def showSummaryStats():
     return render_template("index.html", summary = program.get_summary(), updated = updated)
@@ -412,5 +370,7 @@ def update_data():
         program.load_data(filepath)
 
         return redirect('/')
-
-app.run(debug=True, host='0.0.0.0', port=2000)
+"""
+program = EventsDB()
+program.load_data(data_source)
+#app.run(debug=True, host='0.0.0.0', port=2000)
