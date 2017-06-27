@@ -16,7 +16,7 @@ class Teacher:
 
     # __events = []
     __numINF = 0
-    __numEXC = 0PupilEventsDB.py
+    __numEXC = 0
     __numINC = 0
     __ratio = 0
     __subject = None
