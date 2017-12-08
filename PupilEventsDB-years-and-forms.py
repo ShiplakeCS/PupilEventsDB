@@ -4,7 +4,7 @@ import openpyxl, xlrd, os, datetime
 
 app = Flask(__name__)
 
-data_source = "data/data.xls"
+data_source = "data/report.xls"
 updated = datetime.datetime.fromtimestamp(os.path.getmtime(data_source))
 
 
@@ -23,9 +23,9 @@ class FormGroup:
         self.__exc = 0
 
     def addEvent(self, event):
-        if "EXC" in event:
+        if "Excellence" in event:
             self.__exc += 1
-        elif "INF" in event or "INC" in event:
+        elif "Infraction" in event or "INC" in event:
             self.__inf += 1
 
     def getExc(self):
@@ -106,10 +106,10 @@ class Teacher:
 
     def add_event(self, event):
 
-        if "EXC" in event:
+        if "Excellence" in event:
             self.__numEXC += 1
 
-        elif "INF" in event:
+        elif "Infraction" in event:
             self.__numINF += 1
 
         elif "INC" in event:
@@ -206,41 +206,45 @@ class EventsDB:
 
         global updated
 
-        events_data = xlrd.open_workbook(source_file, on_demand=True).sheet_by_name("Sheet1")
+        #events_data = xlrd.open_workbook(source_file, on_demand=True).sheet_by_name("Sheet1")
+        events_data = xlrd.open_workbook(source_file, on_demand=True).sheet_by_name("Rewards Report")
 
         for row in range(1, events_data.nrows):
 
             # Read key info from the present row in the worksheet
-            category_code = events_data.cell(row, 0).value
-            staff_code = events_data.cell(row, 2).value
-            form_code = events_data.cell(row, 4).value
+            category_code = events_data.cell(row, 5).value
+            staff_code = events_data.cell(row, 10).value
+            form_code = events_data.cell(row, 3).value
             year_code = form_code[:2]
             house_code = form_code[-1:]
 
-            # Test whether an entry needs adding to the __staff dictionary for the present staff code
-            if staff_code in self.__staff.keys():
-                pass
-            else:
-                self.__staff[staff_code] = Teacher()
+            # Test whether row contains meaningful data
+            if "Excellence" in category_code or "Infraction" in category_code:
 
-            # Add the event to the relevant Teacher in the __staff dictionary
-            self.__staff[staff_code].add_event(category_code)
+                # Test whether an entry needs adding to the __staff dictionary for the present staff code
+                if staff_code in self.__staff.keys():
+                    pass
+                else:
+                    self.__staff[staff_code] = Teacher()
 
-            # Test if a relevant year group exists and, if not, create it
+                # Add the event to the relevant Teacher in the __staff dictionary
+                self.__staff[staff_code].add_event(category_code)
 
-            if year_code not in self.__yearGroups.keys():
-                self.__yearGroups[year_code] = YearGroup(year_code)
-                #print("Year group created for {0}".format(year_code))
+                # Test if a relevant year group exists and, if not, create it
 
-            # Test if the relevant year group contains the form
-            if form_code not in self.__yearGroups[year_code].getForms() and form_code[:2] == year_code:
-                self.__yearGroups[year_code].addForm(form_code)
-                #print("Form group created for {0} in year {1}".format(form_code, year_code))
+                if year_code not in self.__yearGroups.keys():
+                    self.__yearGroups[year_code] = YearGroup(year_code)
+                    #print("Year group created for {0}".format(year_code))
 
-            # Add event to current yeargroup and form
+                # Test if the relevant year group contains the form
+                if form_code not in self.__yearGroups[year_code].getForms() and form_code[:2] == year_code:
+                    self.__yearGroups[year_code].addForm(form_code)
+                    #print("Form group created for {0} in year {1}".format(form_code, year_code))
 
-            self.__yearGroups[year_code].addEvent(category_code, form_code)
-            #print("Added {2} event to form {0} in year {1}".format(form_code, year_code, category_code))
+                # Add event to current yeargroup and form
+
+                self.__yearGroups[year_code].addEvent(category_code, form_code)
+                #print("Added {2} event to form {0} in year {1}".format(form_code, year_code, category_code))
 
         for yg in self.__yearGroups:
             self.__yearGroups[yg].refreshValues()
@@ -317,7 +321,7 @@ class EventsDB:
 
 #program.load_data(data_source)
 
-"""
+
 @app.route('/')
 def showSummaryStats():
     return render_template("index.html", summary = program.get_summary(), updated = updated)
@@ -356,13 +360,13 @@ def update_data():
     if request.method == 'POST':
         f = request.files['file']
         if f.filename[-4:] == ".csv":
-            filepath = "data/data.csv"
+            filepath = "data/report.csv"
 
         elif f.filename[-4:] == ".xls":
-            filepath = "data/data.xls"
+            filepath = "data/report.xls"
 
         elif f.filename[-5:] == ".xlsx":
-            filepath = "data/data.xlsx"
+            filepath = "data/report.xlsx"
         else:
             raise FileTypeError("Filetype not recognised. Must use CSV, XLS or XLSX.")
 
@@ -370,7 +374,8 @@ def update_data():
         program.load_data(filepath)
 
         return redirect('/')
-"""
+
 program = EventsDB()
 program.load_data(data_source)
-#app.run(debug=True, host='0.0.0.0', port=2000)
+program.refresh_summary()
+app.run(debug=True, host='0.0.0.0', port=2000)
