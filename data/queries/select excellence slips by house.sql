@@ -1,0 +1,1 @@
+select count(Event.ID), House.Description from Event, FormGroup, House where Event.EventTypeID = 1 and Event.FormGroupID = FormGroup.ID and  FormGroup.HouseID = House.ID group by House.ID

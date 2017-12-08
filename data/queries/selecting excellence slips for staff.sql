@@ -1,0 +1,1 @@
+select Staff.StaffCode, Event.EventTypeID, COUNT(Event.ID) from Staff, Event, EventType where Event.EventTypeID = EventType.ID and EventType.Description = "EXC" and Event.StaffID = Staff.ID GROUP BY Staff.StaffCode ORDER BY Count(Event.ID) DESC
