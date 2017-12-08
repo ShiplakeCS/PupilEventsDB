@@ -372,7 +372,7 @@ def update_data():
 
         f.save(filepath)
         program.load_data(filepath)
-
+        program.refresh_summary()
         return redirect('/')
 
 program = EventsDB()
